@@ -28,21 +28,34 @@ export class StorageService {
     return key;
   }
 
+  async generateDownloadUrl(stlKey: string) {
+
+    const expiry = 60 * 5; // 5 minutes
+
+    const url = await MinioClient.presignedGetObject(
+      this.bucket,
+      stlKey,
+      expiry,
+    );
+
+    return url;
+
+  }
+
   private isValidStl(buffer: Buffer): boolean {
 
-    // ASCII STL обычно начинается с "solid"
     const header = buffer.toString('utf8', 0, 5);
 
     if (header === 'solid') {
       return true;
     }
 
-    // Binary STL минимум 84 байта
     if (buffer.length > 84) {
       return true;
     }
 
     return false;
+
   }
 
 }

@@ -2,8 +2,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn
+  CreateDateColumn,
+  OneToMany
 } from 'typeorm';
+
+import { ModelReview } from './model-review.entity';
 
 @Entity('models')
 export class Model {
@@ -33,5 +36,8 @@ export class Model {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => ModelReview, (review) => review.model)
+  reviews: ModelReview[];
 
 }
