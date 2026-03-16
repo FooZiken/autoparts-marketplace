@@ -5,11 +5,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { User } from './modules/users/entities/user.entity';
+import { Model } from './modules/models/entities/model.entity';
 
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ModelsModule } from './modules/models/models.module';
-
+import { StorageModule } from './storage/storage.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -22,7 +23,7 @@ import { ModelsModule } from './modules/models/models.module';
       password: 'autoparts',
       database: 'autoparts',
 
-      entities: [User],
+      entities: [User, Model],
 
       synchronize: true,
     }),
@@ -30,6 +31,7 @@ import { ModelsModule } from './modules/models/models.module';
     UsersModule,
     AuthModule,
     ModelsModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
