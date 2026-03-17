@@ -1,17 +1,25 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { MinioClient } from './minio.client';
+import { StlAnalyzerService } from '../services/stl-analyzer.service';
 
 @Injectable()
 export class StorageService {
 
   private bucket = 'models';
 
-  async uploadStl(file: Express.Multer.File): Promise<string> {
+  constructor(
+    private stlAnalyzer: StlAnalyzerService,
+  ) {}
+
+  async uploadStl(file: Express.Multer.File) {
 
     if (!this.isValidStl(file.buffer)) {
       throw new BadRequestException('Invalid STL file');
     }
+
+    // 🔥 анализ STL
+    const analysis = this.stlAnalyzer.analyze(file.buffer);
 
     const key = `${randomUUID()}.stl`;
 
@@ -25,7 +33,14 @@ export class StorageService {
       },
     );
 
-    return key;
+    return {
+      stlKey: key,
+      width: analysis.width,
+      height: analysis.height,
+      depth: analysis.depth,
+      volume: analysis.volume,
+      triangleCount: analysis.triangleCount,
+    };
   }
 
   async generateDownloadUrl(stlKey: string) {
@@ -39,7 +54,6 @@ export class StorageService {
     );
 
     return url;
-
   }
 
   private isValidStl(buffer: Buffer): boolean {
@@ -55,7 +69,6 @@ export class StorageService {
     }
 
     return false;
-
   }
 
 }

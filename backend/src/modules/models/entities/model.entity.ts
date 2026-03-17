@@ -3,14 +3,14 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany
+  OneToMany,
 } from 'typeorm';
 
+import { ModelVersion } from './model-version.entity';
 import { ModelReview } from './model-review.entity';
 
 @Entity('models')
 export class Model {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -23,21 +23,15 @@ export class Model {
   @Column()
   designerId: string;
 
-  @Column()
-  stlKey: string;
-
-  @Column('decimal')
-  price: number;
-
-  @Column({
-    default: 'draft'
-  })
+  @Column({ default: 'draft' })
   status: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
+  @OneToMany(() => ModelVersion, (version) => version.model)
+  versions: ModelVersion[];
+
   @OneToMany(() => ModelReview, (review) => review.model)
   reviews: ModelReview[];
-
 }

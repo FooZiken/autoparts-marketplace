@@ -10,13 +10,15 @@ export class CreateModelDto {
   @IsNotEmpty()
   name: string;
 
-  @IsString()
+ @IsString()
   description: string;
+
+  @IsString()
+  stlKey: string;
 
   @IsNumber()
   price: number;
 
   @IsString()
-  stlKey: string;
-
+  material: string;
 }

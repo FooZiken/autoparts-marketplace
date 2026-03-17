@@ -6,11 +6,15 @@ import { AppService } from './app.service';
 
 import { User } from './modules/users/entities/user.entity';
 import { Model } from './modules/models/entities/model.entity';
+import { ModelVersion } from './modules/models/entities/model-version.entity';
 
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ModelsModule } from './modules/models/models.module';
 import { StorageModule } from './storage/storage.module';
+
+import { StlAnalyzerService } from './services/stl-analyzer.service';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
@@ -23,7 +27,7 @@ import { StorageModule } from './storage/storage.module';
       password: 'autoparts',
       database: 'autoparts',
 
-      entities: [User, Model],
+      entities: [User, Model, ModelVersion],
 
       synchronize: true,
     }),
@@ -34,6 +38,6 @@ import { StorageModule } from './storage/storage.module';
     StorageModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, StlAnalyzerService],
 })
 export class AppModule {}

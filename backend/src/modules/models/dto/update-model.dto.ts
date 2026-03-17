@@ -1,7 +1,7 @@
 import {
   IsOptional,
   IsString,
-  IsNumber
+  IsNumber,
 } from 'class-validator';
 
 export class UpdateModelDto {
@@ -14,8 +14,17 @@ export class UpdateModelDto {
   @IsString()
   description?: string;
 
+  // теперь относится к версии
   @IsOptional()
   @IsNumber()
   price?: number;
+
+  @IsOptional()
+  @IsString()
+  stlKey?: string;
+
+  @IsOptional()
+  @IsString()
+  material?: string;
 
 }
