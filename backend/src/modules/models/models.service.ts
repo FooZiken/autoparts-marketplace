@@ -10,8 +10,11 @@ import { Model } from './entities/model.entity';
 import { ModelReview } from './entities/model-review.entity';
 import { ModelVersion } from './entities/model-version.entity';
 
+import { MaterialsService } from '../materials/materials.service';
+
 import { CreateModelDto } from './dto/create-model.dto';
 import { UpdateModelDto } from './dto/update-model.dto';
+
 import { StorageService } from '../../storage/storage.service';
 
 @Injectable()
@@ -27,10 +30,23 @@ export class ModelsService {
     private versionRepo: Repository<ModelVersion>,
 
     private storageService: StorageService,
+    private materialsService: MaterialsService,
   ) {}
 
-  // ✅ CREATE MODEL + FIRST VERSION
-  async create(createModelDto: CreateModelDto, designerId: string) {
+  // 🔥 CREATE с geometry
+  async create(
+    createModelDto: CreateModelDto,
+    designerId: string,
+    geometry?: {
+      width: number;
+      height: number;
+      depth: number;
+      volume: number;
+    },
+  ) {
+
+    await this.materialsService.findOne(createModelDto.materialId);
+
     const model = this.modelsRepository.create({
       name: createModelDto.name,
       description: createModelDto.description,
@@ -40,20 +56,24 @@ export class ModelsService {
 
     const savedModel = await this.modelsRepository.save(model);
 
-    const version = this.versionRepo.create({
-      modelId: savedModel.id,
-      version: 1,
-      stlKey: createModelDto.stlKey,
-      price: createModelDto.price,
-      material: createModelDto.material,
-    });
+   const version = this.versionRepo.create({
+  model: savedModel,
+  version: 1,
+  stlKey: createModelDto.stlKey,
+  price: createModelDto.price,
+  materialId: createModelDto.materialId,
+
+  width: geometry?.width ?? null,
+  height: geometry?.height ?? null,
+  depth: geometry?.depth ?? null,
+  volume: geometry?.volume ?? null,
+} as Partial<ModelVersion>);
 
     await this.versionRepo.save(version);
 
     return savedModel;
   }
 
-  // ✅ FIND ALL WITH VERSIONING
   async findAll(query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
@@ -95,7 +115,6 @@ export class ModelsService {
     };
   }
 
-  // ✅ FIND ONE (WITH VERSIONS)
   async findOne(id: string) {
     const model = await this.modelsRepository.findOne({
       where: { id },
@@ -109,22 +128,34 @@ export class ModelsService {
     return model;
   }
 
-  // ✅ UPDATE = NEW VERSION
-  async update(id: string, updateModelDto: UpdateModelDto) {
+  async update(id: string, dto: UpdateModelDto) {
     const model = await this.findOne(id);
 
     const lastVersion = await this.versionRepo.findOne({
-      where: { modelId: id },
+      where: { model: { id } },
       order: { version: 'DESC' },
     });
 
+    if (!lastVersion) {
+      throw new NotFoundException('Model version not found');
+    }
+
+    if (dto.materialId) {
+      await this.materialsService.findOne(dto.materialId);
+    }
+
     const newVersion = this.versionRepo.create({
-      modelId: id,
-      version: (lastVersion?.version || 0) + 1,
-      stlKey: updateModelDto.stlKey || lastVersion?.stlKey,
-      price: updateModelDto.price ?? lastVersion?.price,
-      material: updateModelDto.material ?? lastVersion?.material,
-    });
+  model: model,
+  version: lastVersion.version + 1,
+  stlKey: dto.stlKey || lastVersion.stlKey,
+  price: dto.price ?? lastVersion.price,
+  materialId: dto.materialId ?? lastVersion.materialId,
+
+  width: lastVersion.width,
+  height: lastVersion.height,
+  depth: lastVersion.depth,
+  volume: lastVersion.volume,
+} as Partial<ModelVersion>);
 
     await this.versionRepo.save(newVersion);
 
@@ -133,13 +164,11 @@ export class ModelsService {
     return this.modelsRepository.save(model);
   }
 
-  // ✅ DELETE
   async delete(id: string) {
     const model = await this.findOne(id);
     return this.modelsRepository.remove(model);
   }
 
-  // ✅ APPROVE
   async approveModel(modelId: string, adminId: string, comment?: string) {
     const model = await this.findOne(modelId);
 
@@ -156,7 +185,6 @@ export class ModelsService {
     return this.reviewsRepository.save(review);
   }
 
-  // ✅ REJECT
   async rejectModel(modelId: string, adminId: string, comment?: string) {
     const model = await this.findOne(modelId);
 
@@ -173,7 +201,6 @@ export class ModelsService {
     return this.reviewsRepository.save(review);
   }
 
-  // ❗ ВРЕМЕННО оставляем, но потом удалим (STL нельзя отдавать)
   async downloadModel(id: string) {
     const model = await this.findOne(id);
 

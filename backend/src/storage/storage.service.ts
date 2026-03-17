@@ -14,12 +14,29 @@ export class StorageService {
 
   async uploadStl(file: Express.Multer.File) {
 
+    // ❗ 1. проверка наличия файла
+    if (!file || !file.buffer) {
+      throw new BadRequestException('File is required');
+    }
+
+    // ❗ 2. ограничение размера (100MB)
+    const MAX_SIZE = 100 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      throw new BadRequestException('File too large (max 100MB)');
+    }
+
+    // ❗ 3. базовая проверка STL
     if (!this.isValidStl(file.buffer)) {
       throw new BadRequestException('Invalid STL file');
     }
 
-    // 🔥 анализ STL
+    // 🔥 4. анализ STL (ОБЯЗАТЕЛЬНО)
     const analysis = this.stlAnalyzer.analyze(file.buffer);
+
+    // ❗ защита от пустых/битых моделей
+    if (!analysis.triangleCount || analysis.triangleCount <= 0) {
+      throw new BadRequestException('Invalid STL geometry');
+    }
 
     const key = `${randomUUID()}.stl`;
 
@@ -29,7 +46,7 @@ export class StorageService {
       file.buffer,
       file.size,
       {
-        'Content-Type': file.mimetype,
+        'Content-Type': file.mimetype || 'application/sla',
       },
     );
 
@@ -45,30 +62,28 @@ export class StorageService {
 
   async generateDownloadUrl(stlKey: string) {
 
-    const expiry = 60 * 5; // 5 minutes
+    const expiry = 60 * 5;
 
-    const url = await MinioClient.presignedGetObject(
+    return MinioClient.presignedGetObject(
       this.bucket,
       stlKey,
       expiry,
     );
-
-    return url;
   }
 
   private isValidStl(buffer: Buffer): boolean {
 
-    const header = buffer.toString('utf8', 0, 5);
-
+    // ASCII STL
+    const header = buffer.toString('utf8', 0, 5).toLowerCase();
     if (header === 'solid') {
       return true;
     }
 
+    // Binary STL (минимальный размер)
     if (buffer.length > 84) {
       return true;
     }
 
     return false;
   }
-
 }

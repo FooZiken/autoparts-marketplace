@@ -1,6 +1,6 @@
 import { IsString, IsNumber } from 'class-validator';
 
-export class CreateModelDto {
+export class CreateMaterialDto {
 
   @IsString()
   name: string;
@@ -8,12 +8,6 @@ export class CreateModelDto {
   @IsString()
   description: string;
 
-  @IsString()
-  stlKey: string;
-
   @IsNumber()
-  price: number;
-
-  @IsString()
-  materialId: string;
+  priceMultiplier: number;
 }

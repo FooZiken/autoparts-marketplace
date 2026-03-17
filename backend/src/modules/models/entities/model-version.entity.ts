@@ -11,15 +11,18 @@ import { Model } from './model.entity';
 
 @Entity('model_versions')
 export class ModelVersion {
+
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  modelId: string;
-
-  @ManyToOne(() => Model, (model) => model.versions)
+  @ManyToOne(() => Model, (model) => model.versions, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'modelId' })
   model: Model;
+
+  @Column()
+  modelId: string;
 
   @Column()
   version: number;
@@ -27,7 +30,12 @@ export class ModelVersion {
   @Column()
   stlKey: string;
 
-  // Геометрия (пока можно null)
+  @Column()
+  materialId: string;
+
+  @Column('decimal', { default: 0 })
+  price: number;
+
   @Column({ type: 'float', nullable: true })
   width: number;
 
@@ -39,13 +47,6 @@ export class ModelVersion {
 
   @Column({ type: 'float', nullable: true })
   volume: number;
-
-  // бизнес
-  @Column('decimal', { default: 0 })
-  price: number;
-
-  @Column({ nullable: true })
-  material: string;
 
   @CreateDateColumn()
   createdAt: Date;

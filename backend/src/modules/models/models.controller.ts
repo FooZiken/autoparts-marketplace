@@ -4,11 +4,15 @@ import {
   Post,
   Body,
   Param,
-  Patch,
   Delete,
-  Req,
-  UseGuards
+  Query,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+  Request,
 } from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { ModelsService } from './models.service';
 import { CreateModelDto } from './dto/create-model.dto';
@@ -17,88 +21,93 @@ import { UpdateModelDto } from './dto/update-model.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Query } from '@nestjs/common';
-import { QueryModelsDto } from './dto/query-models.dto';
+
+import { StorageService } from '../../storage/storage.service';
 
 @Controller('models')
 export class ModelsController {
 
-  constructor(private readonly modelsService: ModelsService) {}
+  constructor(
+    private readonly modelsService: ModelsService,
+    private readonly storageService: StorageService,
+  ) {}
 
+  // 🔥 НОВЫЙ: upload + create в одном
   @Post()
-  @UseGuards(AuthGuard('jwt'))
-  create(
-    @Body() createModelDto: CreateModelDto,
-    @Req() req
-  ) {
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+@Roles('designer')
+@UseInterceptors(FileInterceptor('file'))
+async create(
+  @UploadedFile() file: Express.Multer.File,
+  @Body() dto: CreateModelDto,
+  @Request() req: any,
+) {
 
-    const designerId = req.user.userId;
-
-    return this.modelsService.create(createModelDto, designerId);
+  if (!file) {
+    throw new Error('STL file is required');
   }
 
-  @Get(':id/download')
-@UseGuards(AuthGuard('jwt'))
-download(
-  @Param('id') id: string
-) {
-  return this.modelsService.downloadModel(id);
+  const uploadResult = await this.storageService.uploadStl(file);
+
+  return this.modelsService.create(
+    {
+      ...dto,
+      stlKey: uploadResult.stlKey,
+    },
+    req.user.id,
+    {
+      width: uploadResult.width,
+      height: uploadResult.height,
+      depth: uploadResult.depth,
+      volume: uploadResult.volume,
+    },
+  );
 }
 
- @Get()
-findAll(
-  @Query() query: QueryModelsDto
-) {
-  return this.modelsService.findAll(query);
-}
+  // публичный каталог
+  @Get()
+  findAll(@Query() query: any) {
+    return this.modelsService.findAll(query);
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.modelsService.findOne(id);
   }
 
-  @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
+  @Post(':id')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('designer')
   update(
     @Param('id') id: string,
-    @Body() updateModelDto: UpdateModelDto
+    @Body() dto: UpdateModelDto,
   ) {
-    return this.modelsService.update(id, updateModelDto);
+    return this.modelsService.update(id, dto);
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard('jwt'))
-  remove(@Param('id') id: string) {
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('designer', 'admin')
+  delete(@Param('id') id: string) {
     return this.modelsService.delete(id);
   }
 
-  @Patch(':id/approve')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('admin')
-approve(
-  @Param('id') id: string,
-  @Req() req,
-) {
+  @Post(':id/approve')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  approve(@Param('id') id: string, @Request() req: any) {
+    return this.modelsService.approveModel(id, req.user.id);
+  }
 
-  const adminId = req.user.userId;
+  @Post(':id/reject')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('admin')
+  reject(@Param('id') id: string, @Request() req: any) {
+    return this.modelsService.rejectModel(id, req.user.id);
+  }
 
-  return this.modelsService.approveModel(id, adminId);
-
-}
-
-@Patch(':id/reject')
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('admin')
-reject(
-  @Param('id') id: string,
-  @Req() req,
-  @Body('comment') comment: string,
-) {
-
-  const adminId = req.user.userId;
-
-  return this.modelsService.rejectModel(id, adminId, comment);
-
-}
-
+  @Get(':id/download')
+  download(@Param('id') id: string) {
+    return this.modelsService.downloadModel(id);
+  }
 }
