@@ -5,7 +5,9 @@ import {
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
+import { PrintersService } from '../printers/printers.service';
+import { PricingService } from '../pricing/pricing.service';
+import { Printer } from '../printers/entities/printer.entity';
 import { Model } from './entities/model.entity';
 import { ModelReview } from './entities/model-review.entity';
 import { ModelVersion } from './entities/model-version.entity';
@@ -31,9 +33,11 @@ export class ModelsService {
 
     private storageService: StorageService,
     private materialsService: MaterialsService,
+    private pricingService: PricingService,
+    private printersService: PrintersService,
   ) {}
 
-  // 🔥 CREATE с geometry
+  // CREATE
   async create(
     createModelDto: CreateModelDto,
     designerId: string,
@@ -44,7 +48,6 @@ export class ModelsService {
       volume: number;
     },
   ) {
-
     await this.materialsService.findOne(createModelDto.materialId);
 
     const model = this.modelsRepository.create({
@@ -56,24 +59,25 @@ export class ModelsService {
 
     const savedModel = await this.modelsRepository.save(model);
 
-   const version = this.versionRepo.create({
-  model: savedModel,
-  version: 1,
-  stlKey: createModelDto.stlKey,
-  price: createModelDto.price,
-  materialId: createModelDto.materialId,
+    const version = this.versionRepo.create({
+      model: savedModel,
+      version: 1,
+      stlKey: createModelDto.stlKey,
+      price: createModelDto.price,
+      materialId: createModelDto.materialId,
 
-  width: geometry?.width ?? null,
-  height: geometry?.height ?? null,
-  depth: geometry?.depth ?? null,
-  volume: geometry?.volume ?? null,
-} as Partial<ModelVersion>);
+      width: geometry?.width ?? null,
+      height: geometry?.height ?? null,
+      depth: geometry?.depth ?? null,
+      volume: geometry?.volume ?? null,
+    } as Partial<ModelVersion>);
 
     await this.versionRepo.save(version);
 
     return savedModel;
   }
 
+  // LIST
   async findAll(query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 20;
@@ -115,19 +119,63 @@ export class ModelsService {
     };
   }
 
+  // 🔥 GET ONE С PRICING
   async findOne(id: string) {
-    const model = await this.modelsRepository.findOne({
-      where: { id },
-      relations: ['reviews', 'versions'],
-    });
+  const model = await this.modelsRepository.findOne({
+    where: { id },
+    relations: ['reviews', 'versions'],
+  });
 
-    if (!model) {
-      throw new NotFoundException('Model not found');
-    }
-
-    return model;
+  if (!model) {
+    throw new NotFoundException('Model not found');
   }
 
+  const latest = model.versions?.sort(
+    (a, b) => b.version - a.version,
+  )[0];
+
+  if (!latest) {
+  throw new NotFoundException('Model has no versions');
+}
+
+  // 🔥 MATERIAL
+  const material = await this.materialsService.findOne(
+    latest.materialId,
+  );
+
+  const materialMultiplier = material.priceMultiplier;
+
+  // 🔥 PRICING
+  const pricing = this.pricingService.calculateTotalPrice({
+    volume: latest.volume,
+    materialMultiplier,
+    designerPrice: Number(latest.price),
+  });
+
+  // 🔥 PRINTER (временно координаты фиксированные)
+  let printer: Printer | null = null;
+
+  try {
+    printer = await this.printersService.findSuitablePrinter({
+      width: latest.width,
+      height: latest.height,
+      depth: latest.depth,
+      latitude: 55.75,  // Москва (пока заглушка)
+      longitude: 37.61,
+    });
+  } catch (e) {
+    printer = null;
+  }
+
+  return {
+    ...model,
+    currentVersion: latest,
+    pricing,
+    printer,
+  };
+}
+
+  // UPDATE
   async update(id: string, dto: UpdateModelDto) {
     const model = await this.findOne(id);
 
@@ -145,17 +193,17 @@ export class ModelsService {
     }
 
     const newVersion = this.versionRepo.create({
-  model: model,
-  version: lastVersion.version + 1,
-  stlKey: dto.stlKey || lastVersion.stlKey,
-  price: dto.price ?? lastVersion.price,
-  materialId: dto.materialId ?? lastVersion.materialId,
+      model: model,
+      version: lastVersion.version + 1,
+      stlKey: dto.stlKey || lastVersion.stlKey,
+      price: dto.price ?? lastVersion.price,
+      materialId: dto.materialId ?? lastVersion.materialId,
 
-  width: lastVersion.width,
-  height: lastVersion.height,
-  depth: lastVersion.depth,
-  volume: lastVersion.volume,
-} as Partial<ModelVersion>);
+      width: lastVersion.width,
+      height: lastVersion.height,
+      depth: lastVersion.depth,
+      volume: lastVersion.volume,
+    } as Partial<ModelVersion>);
 
     await this.versionRepo.save(newVersion);
 

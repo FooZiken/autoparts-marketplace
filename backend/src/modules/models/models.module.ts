@@ -10,14 +10,23 @@ import { ModelsController } from './models.controller';
 
 import { StorageModule } from '../../storage/storage.module';
 import { MaterialsModule } from '../materials/materials.module';
+import { PricingModule } from '../pricing/pricing.module'; // 🔥 ВАЖНО
+import { PrintersModule } from '../printers/printers.module'; // 🔥 (если ещё не добавил)
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Model, ModelReview, ModelVersion]),
+    TypeOrmModule.forFeature([
+      Model,
+      ModelReview,
+      ModelVersion,
+    ]),
     StorageModule,
-    MaterialsModule, // 🔥 ВАЖНО
+    MaterialsModule,
+    PricingModule,   // ✅ фикс
+    PrintersModule,  // ✅ (если используешь PrintersService)
   ],
   providers: [ModelsService],
   controllers: [ModelsController],
+  exports: [ModelsService], // 🔥 ВОТ ЭТО ДОБАВИТЬ
 })
 export class ModelsModule {}
