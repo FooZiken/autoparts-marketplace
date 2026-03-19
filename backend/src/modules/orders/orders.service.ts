@@ -71,12 +71,12 @@ export class OrdersService {
 
       // 🔥 назначаем исполнителя
       const executor = await this.executorsService.findSuitableExecutor(
-        model.printer,
-      );
+  model.printer,
+);
 
-      if (executor) {
-        printJob.executor = executor;
-      }
+if (executor) {
+  await this.printJobsService.assignExecutor(printJob.id, executor);
+}
 
       printJobs.push(printJob);
     }

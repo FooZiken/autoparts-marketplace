@@ -35,8 +35,8 @@ import { SlicingModule } from './modules/slicing/slicing.module';
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'autoparts',
-      password: 'autoparts',
+      username: 'postgres',
+      password: 'postgres',
       database: 'autoparts',
       entities: [
         User,

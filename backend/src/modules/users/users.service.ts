@@ -16,6 +16,12 @@ export class UsersService {
     return this.usersRepository.find();
   }
 
+  async findByEmail(email: string) {
+  return this.usersRepository.findOne({
+    where: { email },
+  });
+}
+
   async create(userData: Partial<User>) {
     if (!userData.password) {
       throw new Error('Password is required');
@@ -24,11 +30,11 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const user = this.usersRepository.create({
-      email: userData.email,
-      password: hashedPassword,
-      name: userData.name,
-      roles: userData.roles,
-    });
+  email: userData.email,
+  password: hashedPassword,
+  name: userData.name,
+  roles: userData.roles || [],
+});
 
     return this.usersRepository.save(user);
   }

@@ -6,8 +6,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-import { UserRole } from '../enums/user-role.enum';
-
 @Entity('users')
 export class User {
 
@@ -23,13 +21,9 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
-  @Column({
-    type: 'enum',
-    enum: UserRole,
-    array: true,
-    default: [UserRole.BUYER],
-  })
-  roles: UserRole[];
+  // 🔥 ПРОСТО И НАДЁЖНО
+  @Column('simple-array', { nullable: true })
+  roles: string[];
 
   @Column({ default: true })
   isActive: boolean;

@@ -11,9 +11,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // ✅ правильная валидация
   async validateUser(email: string, password: string) {
-    const users = await this.usersService.findAll();
-    const user = users.find(u => u.email === email);
+    // 🔥 ищем напрямую (сделай метод в users.service если нет)
+    const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -28,18 +29,34 @@ export class AuthService {
     return user;
   }
 
+  // ✅ логин
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
     const payload = {
-  sub: user.id,
-  email: user.email,
-  roles: user.roles,
-};
-
+      sub: user.id,
+      email: user.email,
+      roles: user.roles,
+    };
 
     return {
       access_token: this.jwtService.sign(payload),
+      user, // 🔥 ВАЖНО!
     };
   }
+
+  // ✅ регистрация
+  async register(data: any) {
+  const { email, password, roles } = data;
+
+  // ❌ УБИРАЕМ bcrypt здесь
+
+  const user = await this.usersService.create({
+    email,
+    password, // передаём сырой пароль
+    roles,
+  });
+
+  return user;
+}
 }

@@ -1,206 +1,68 @@
-import { useEffect, useState } from 'react';
+import { useState } from "react";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
+import { CartProvider } from "./cart/CartContext";
 
-function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [models, setModels] = useState([]);
+import HomePage from "./pages/HomePage";
+import ModelsPage from "./pages/ModelsPage";
+import ProductPage from "./pages/ProductPage";
+import CartPage from "./pages/CartPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import AboutPage from "./pages/AboutPage";
+import Navbar from "./components/Navbar";
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+function AppContent() {
+  const { user } = useAuth();
 
-  const [file, setFile] = useState(null);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [materialId, setMaterialId] = useState('');
-
-  useEffect(() => {
-    fetch('http://localhost:3000/models')
-      .then(res => res.json())
-      .then(data => {
-        setModels(data.data || []);
-      });
-  }, []);
-
-  async function handleLogin() {
-    const res = await fetch('http://localhost:3000/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (data.access_token) {
-      localStorage.setItem('token', data.access_token);
-      setToken(data.access_token);
-    } else {
-      alert('Login failed');
-    }
-  }
-
-  function logout() {
-    localStorage.removeItem('token');
-    setToken(null);
-  }
-
-  async function createOrder(modelId) {
-    const res = await fetch('http://localhost:3000/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        modelIds: [modelId],
-        deliveryAddress: 'Test address',
-      }),
-    });
-
-    const data = await res.json();
-    console.log(data);
-    alert('Order created!');
-  }
-
-  async function uploadModel() {
-    if (!file) {
-      alert('Select STL file');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-
-      formData.append('file', file);
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('price', price);
-      formData.append('materialId', materialId);
-
-      const res = await fetch('http://localhost:3000/models', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      console.log('MODEL CREATED:', data);
-
-      if (data.id) {
-        alert('Model created!');
-        window.location.reload();
-      } else {
-        alert('Error creating model');
-      }
-
-    } catch (err) {
-      console.error(err);
-      alert('Upload failed');
-    }
-  }
-
-  if (!token) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h1>Login</h1>
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-
-        <br /><br />
-
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <br /><br />
-
-        <button onClick={handleLogin}>Login</button>
-      </div>
-    );
-  }
+  const [page, setPage] = useState("home");
+  const [selectedModel, setSelectedModel] = useState(null);
+  const [searchQuery, setSearchQuery] = useState(null);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Autoparts Marketplace</h1>
+    <div>
+      <Navbar onNavigate={setPage} />
 
-      <button onClick={logout}>Logout</button>
-
-      <h2>Upload Model</h2>
-
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-
-      <br /><br />
-
-      <input
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-
-      <br /><br />
-
-      <input
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
-
-      <br /><br />
-
-      <input
-        placeholder="Price"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-      />
-
-      <br /><br />
-
-      <input
-        placeholder="Material ID"
-        value={materialId}
-        onChange={(e) => setMaterialId(e.target.value)}
-      />
-
-      <br /><br />
-
-      <button onClick={uploadModel}>Upload STL</button>
-
-      <hr />
-
-      <h2>Models</h2>
-
-      {models.map((model) => (
-        <div
-          key={model.id}
-          style={{
-            border: '1px solid #ccc',
-            marginBottom: 10,
-            padding: 10,
+      {page === "home" && (
+        <HomePage
+          onSearch={(query) => {
+            setSearchQuery(query);
+            setPage("models");
           }}
-        >
-          <h3>{model.name}</h3>
-          <p>{model.description}</p>
+          onNavigate={setPage}
+        />
+      )}
 
-          {model.pricing && (
-            <p>Price: {model.pricing.total}</p>
-          )}
+      {page === "models" && (
+        <ModelsPage
+          searchQuery={searchQuery}
+          onOpenModel={(id) => {
+            setSelectedModel(id);
+            setPage("product");
+          }}
+        />
+      )}
 
-          <button onClick={() => createOrder(model.id)}>
-            Buy
-          </button>
-        </div>
-      ))}
+      {page === "product" && selectedModel && (
+        <ProductPage modelId={selectedModel} />
+      )}
+
+      {page === "cart" && user && <CartPage />}
+      {page === "login" && <LoginPage />}
+      {page === "register" && <RegisterPage />}
+      {page === "about" && <AboutPage />}
+      {page === "profile" && <ProfilePage />}
+
+      {!user && page === "cart" && <LoginPage />}
     </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <AuthProvider>
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
+    </AuthProvider>
+  );
+}

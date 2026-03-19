@@ -18,6 +18,7 @@ export class SlicingProcessor extends WorkerHost {
 
     await this.printJobsService.setSlicing(printJobId);
 
+    // имитация slicing
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const fakeGcodePath = `gcode/job-${printJobId}.gcode`;
@@ -25,6 +26,13 @@ export class SlicingProcessor extends WorkerHost {
     await this.printJobsService.setReady(printJobId, fakeGcodePath);
 
     console.log('SLICING DONE', printJobId);
+
+    // 🔥 имитация отправки исполнителю
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await this.printJobsService.setSentToExecutor(printJobId);
+
+    console.log('SENT TO EXECUTOR', printJobId);
 
     return true;
   }

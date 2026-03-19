@@ -7,6 +7,7 @@ import { Model } from '../models/entities/model.entity';
 import { Material } from '../materials/entities/material.entity';
 import { Printer } from '../printers/entities/printer.entity';
 import { Order } from '../orders/entities/order.entity';
+import { Executor } from '../executors/entities/executor.entity';
 
 @Injectable()
 export class PrintJobsService {
@@ -34,11 +35,13 @@ export class PrintJobsService {
     return this.repo.save(job);
   }
 
-  // 🔥 НОВЫЙ МЕТОД
   async attachToOrder(jobId: number, order: Order) {
-    await this.repo.update(jobId, {
-      order,
-    });
+    await this.repo.update(jobId, { order });
+  }
+
+  // 🔥 НОВЫЙ МЕТОД
+  async assignExecutor(jobId: number, executor: Executor) {
+    await this.repo.update(jobId, { executor });
   }
 
   async setSlicing(jobId: number) {
@@ -49,6 +52,13 @@ export class PrintJobsService {
     await this.repo.update(jobId, {
       status: 'ready',
       gcodePath,
+    });
+  }
+
+  // 🔥 НОВЫЙ МЕТОД
+  async setSentToExecutor(jobId: number) {
+    await this.repo.update(jobId, {
+      status: 'sent_to_executor',
     });
   }
 }
