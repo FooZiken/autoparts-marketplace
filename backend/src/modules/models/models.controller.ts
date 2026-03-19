@@ -34,15 +34,13 @@ export class ModelsController {
 
   // 🔥 НОВЫЙ: upload + create в одном
   @Post()
-@UseGuards(AuthGuard('jwt'), RolesGuard)
-@Roles('designer')
+@UseGuards(AuthGuard('jwt'))
 @UseInterceptors(FileInterceptor('file'))
 async create(
   @UploadedFile() file: Express.Multer.File,
   @Body() dto: CreateModelDto,
   @Request() req: any,
 ) {
-
   if (!file) {
     throw new Error('STL file is required');
   }
@@ -50,12 +48,10 @@ async create(
   const uploadResult = await this.storageService.uploadStl(file);
 
   return this.modelsService.create(
-    {
-      ...dto,
-      stlKey: uploadResult.stlKey,
-    },
+    dto, // ✅ только DTO
     req.user.id,
     {
+      stlKey: uploadResult.stlKey, // ✅ отдельно
       width: uploadResult.width,
       height: uploadResult.height,
       depth: uploadResult.depth,

@@ -17,12 +17,10 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 
 @Controller('materials')
 export class MaterialsController {
-
   constructor(private readonly materialsService: MaterialsService) {}
 
+  // 🔓 временно открыто
   @Post()
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
   create(@Body() dto: CreateMaterialDto) {
     return this.materialsService.create(dto);
   }
@@ -32,11 +30,7 @@ export class MaterialsController {
     return this.materialsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.materialsService.findOne(id);
-  }
-
+  // 🔒 можно оставить защищённым
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('admin')

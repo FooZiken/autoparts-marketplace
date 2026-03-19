@@ -39,15 +39,17 @@ export class ModelsService {
 
   // CREATE
   async create(
-    createModelDto: CreateModelDto,
-    designerId: string,
-    geometry?: {
-      width: number;
-      height: number;
-      depth: number;
-      volume: number;
-    },
-  ) {
+  createModelDto: CreateModelDto,
+  designerId: string,
+  fileData: {
+    stlKey: string;
+    width?: number;
+    height?: number;
+    depth?: number;
+    volume?: number;
+  },
+)
+  {
     await this.materialsService.findOne(createModelDto.materialId);
 
     const model = this.modelsRepository.create({
@@ -60,17 +62,17 @@ export class ModelsService {
     const savedModel = await this.modelsRepository.save(model);
 
     const version = this.versionRepo.create({
-      model: savedModel,
-      version: 1,
-      stlKey: createModelDto.stlKey,
-      price: createModelDto.price,
-      materialId: createModelDto.materialId,
+  model: savedModel,
+  version: 1,
+  stlKey: fileData.stlKey,
+  price: createModelDto.price,
+  materialId: createModelDto.materialId,
 
-      width: geometry?.width ?? null,
-      height: geometry?.height ?? null,
-      depth: geometry?.depth ?? null,
-      volume: geometry?.volume ?? null,
-    } as Partial<ModelVersion>);
+  width: fileData.width ?? null,
+  height: fileData.height ?? null,
+  depth: fileData.depth ?? null,
+  volume: fileData.volume ?? null,
+} as Partial<ModelVersion>);
 
     await this.versionRepo.save(version);
 

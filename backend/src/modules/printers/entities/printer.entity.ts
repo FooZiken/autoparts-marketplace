@@ -2,7 +2,10 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  ManyToOne,
 } from 'typeorm';
+
+import { Executor } from '../../executors/entities/executor.entity';
 
 @Entity('printers')
 export class Printer {
@@ -29,4 +32,11 @@ export class Printer {
 
   @Column('float')
   longitude: number;
+
+  // 🔥 связь с исполнителем
+  @ManyToOne(() => Executor, (executor) => executor.printers, {
+    nullable: true,
+    eager: true,
+  })
+  executor: Executor;
 }

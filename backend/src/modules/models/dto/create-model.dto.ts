@@ -1,19 +1,17 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsUUID } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateModelDto {
-
   @IsString()
   name: string;
 
   @IsString()
   description: string;
 
-  @IsString()
-  stlKey: string;
-
+  @Type(() => Number) // 🔥 ВАЖНО
   @IsNumber()
   price: number;
 
-  @IsString()
+  @IsUUID()
   materialId: string;
 }
