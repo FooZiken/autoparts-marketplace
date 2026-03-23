@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getModels } from "../api/models";
 import ModelCard from "../components/ModelCard";
 
-export default function ModelsPage({ onOpenModel }) {
+export default function ModelsPage({ onNavigate }) {
   const [models, setModels] = useState([]);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function ModelsPage({ onOpenModel }) {
           <ModelCard
             key={m.id}
             model={m}
-            onOpen={(id) => onOpenModel(id)}
+            onOpen={() => onNavigate("product", m.id)}
           />
         ))}
       </div>

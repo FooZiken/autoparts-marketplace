@@ -52,6 +52,30 @@ export default function ProductPage({ modelId }) {
     }
   };
 
+  // ⭐ ДОБАВЛЕНО: избранное
+  const addToFavorites = () => {
+    const existing = JSON.parse(
+      localStorage.getItem("favorites") || "[]"
+    );
+
+    if (existing.find((f) => f.id === model.id)) {
+      alert("Already in favorites");
+      return;
+    }
+
+    const updated = [
+      ...existing,
+      {
+        id: model.id,
+        name: model.name,
+      },
+    ];
+
+    localStorage.setItem("favorites", JSON.stringify(updated));
+
+    alert("Added to favorites");
+  };
+
   if (!model) return <div>Loading...</div>;
 
   return (
@@ -65,6 +89,11 @@ export default function ProductPage({ modelId }) {
       <div style={styles.info}>
         <h1>{model.name}</h1>
         <p>{model.description}</p>
+
+        {/* ⭐ КНОПКА ИЗБРАННОГО */}
+        <button onClick={addToFavorites}>
+          Add to favorites
+        </button>
 
         {/* MATERIAL */}
         <div>
@@ -98,8 +127,10 @@ export default function ProductPage({ modelId }) {
           </select>
         </div>
 
-        {/* PRICE (пока заглушка) */}
-        <p style={styles.price}>Price: calculated on backend</p>
+        {/* PRICE */}
+        <p style={styles.price}>
+          Price: calculated on backend
+        </p>
 
         <button onClick={handleOrder} disabled={loading}>
           {loading ? "Ordering..." : "Order now"}

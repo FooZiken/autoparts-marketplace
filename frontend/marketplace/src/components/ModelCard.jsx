@@ -4,7 +4,7 @@ export default function ModelCard({ model, onOpen }) {
   const { addToCart } = useCartContext();
 
   return (
-    <div style={styles.card} onClick={() => onOpen(model.id)}>
+    <div style={styles.card} onClick={onOpen}>
       {/* IMAGE */}
       <div style={styles.image}>
         <span>3D</span>
@@ -17,7 +17,6 @@ export default function ModelCard({ model, onOpen }) {
 
         <p style={styles.price}>from backend</p>
 
-        {/* ❗ важно: stopPropagation */}
         <button
           onClick={(e) => {
             e.stopPropagation();

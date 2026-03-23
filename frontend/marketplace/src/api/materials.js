@@ -1,3 +1,5 @@
 import { api } from "./client";
 
-export const getMaterials = () => api("/materials");
+export async function getMaterials() {
+  return api.get("/materials");
+}

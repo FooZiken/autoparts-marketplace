@@ -17,10 +17,10 @@ export class UsersService {
   }
 
   async findByEmail(email: string) {
-  return this.usersRepository.findOne({
-    where: { email },
-  });
-}
+    return this.usersRepository.findOne({
+      where: { email },
+    });
+  }
 
   async create(userData: Partial<User>) {
     if (!userData.password) {
@@ -30,11 +30,13 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
 
     const user = this.usersRepository.create({
-  email: userData.email,
-  password: hashedPassword,
-  name: userData.name,
-  roles: userData.roles || [],
-});
+      email: userData.email,
+      password: hashedPassword,
+      name: userData.name,
+
+      // 🔥 КЛЮЧЕВОЙ ФИКС
+      roles: ['buyer', 'designer'],
+    });
 
     return this.usersRepository.save(user);
   }

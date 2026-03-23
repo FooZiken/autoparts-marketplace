@@ -1,18 +1,29 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { parse } from 'stl-parser';
+import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js';
+import * as THREE from 'three';
 
 @Injectable()
 export class StlAnalyzerService {
 
   analyze(buffer: Buffer) {
     try {
-      const data = parse(buffer);
+      const loader = new STLLoader();
 
-      if (!data || !data.positions) {
+      // 🔥 поддерживает binary + ASCII
+      const arrayBuffer = buffer.buffer.slice(
+  buffer.byteOffset,
+  buffer.byteOffset + buffer.byteLength
+);
+
+const geometry = loader.parse(arrayBuffer);
+
+      if (!geometry || !geometry.attributes?.position) {
         throw new Error();
       }
 
-      const positions = data.positions;
+      const positionsArray = geometry.attributes.position.array as ArrayLike<number>;
+
+      const positions: number[] = Array.from(positionsArray);
 
       let minX = Infinity, minY = Infinity, minZ = Infinity;
       let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
@@ -46,6 +57,7 @@ export class StlAnalyzerService {
       };
 
     } catch (e) {
+      console.error('STL parse error:', e.message);
       throw new BadRequestException('Invalid STL file');
     }
   }

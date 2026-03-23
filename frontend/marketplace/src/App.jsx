@@ -1,68 +1,66 @@
 import { useState } from "react";
-import { AuthProvider, useAuth } from "./auth/AuthContext";
-import { CartProvider } from "./cart/CartContext";
+import Navbar from "./components/Navbar";
 
 import HomePage from "./pages/HomePage";
 import ModelsPage from "./pages/ModelsPage";
 import ProductPage from "./pages/ProductPage";
-import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import CartPage from "./pages/CartPage";
 import AboutPage from "./pages/AboutPage";
-import Navbar from "./components/Navbar";
+import ProfilePage from "./pages/ProfilePage";
 
-function AppContent() {
-  const { user } = useAuth();
-
+export default function App() {
   const [page, setPage] = useState("home");
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [searchQuery, setSearchQuery] = useState(null);
+  const [selectedModelId, setSelectedModelId] = useState(null);
+
+  function handleNavigate(p, data) {
+    setPage(p);
+
+    if (p === "product") {
+      setSelectedModelId(data); // ← теперь это ID
+    }
+  }
+
+  function renderPage() {
+    switch (page) {
+      case "home":
+        return <HomePage onNavigate={handleNavigate} />;
+
+      case "models":
+        return <ModelsPage onNavigate={handleNavigate} />;
+
+      case "product":
+        return (
+          <ProductPage
+            modelId={selectedModelId}
+          />
+        );
+
+      case "login":
+        return <LoginPage onNavigate={handleNavigate} />;
+
+      case "register":
+        return <RegisterPage onNavigate={handleNavigate} />;
+
+      case "cart":
+        return <CartPage />;
+
+      case "about":
+        return <AboutPage />;
+
+      case "profile":
+        return <ProfilePage />;
+
+      default:
+        return <HomePage onNavigate={handleNavigate} />;
+    }
+  }
 
   return (
     <div>
-      <Navbar onNavigate={setPage} />
-
-      {page === "home" && (
-        <HomePage
-          onSearch={(query) => {
-            setSearchQuery(query);
-            setPage("models");
-          }}
-          onNavigate={setPage}
-        />
-      )}
-
-      {page === "models" && (
-        <ModelsPage
-          searchQuery={searchQuery}
-          onOpenModel={(id) => {
-            setSelectedModel(id);
-            setPage("product");
-          }}
-        />
-      )}
-
-      {page === "product" && selectedModel && (
-        <ProductPage modelId={selectedModel} />
-      )}
-
-      {page === "cart" && user && <CartPage />}
-      {page === "login" && <LoginPage />}
-      {page === "register" && <RegisterPage />}
-      {page === "about" && <AboutPage />}
-      {page === "profile" && <ProfilePage />}
-
-      {!user && page === "cart" && <LoginPage />}
+      <Navbar onNavigate={handleNavigate} />
+      {renderPage()}
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <CartProvider>
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
   );
 }

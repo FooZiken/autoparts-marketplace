@@ -1,5 +1,16 @@
 import { api } from "./client";
 
-export const getModels = () => api("/models");
+// список моделей
+export async function getModels() {
+  return api.get("/models");
+}
 
-export const getModel = (id) => api(`/models/${id}`);
+// одна модель
+export async function getModel(id) {
+  return api.get(`/models/${id}`);
+}
+
+// upload модели
+export async function uploadModel(formData) {
+  return api.post("/models", formData);
+}

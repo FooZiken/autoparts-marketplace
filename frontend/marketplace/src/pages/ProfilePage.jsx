@@ -1,80 +1,124 @@
-import { useState } from "react";
-import { useAuth } from "../auth/AuthContext";
+import { useState, useEffect } from "react";
+import { getOrders } from "../api/orders";
+import ProfileUpload from "../components/profile/ProfileUpload";
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const [tab, setTab] = useState("orders");
+  const [orders, setOrders] = useState([]);
+  const [favorites, setFavorites] = useState([]);
 
-  const [tab, setTab] = useState("overview");
+  useEffect(() => {
+    loadOrders();
+    loadFavorites();
+  }, []);
 
-  if (!user) {
-    return <div style={{ padding: "40px" }}>Not authorized</div>;
+  async function loadOrders() {
+    try {
+      const data = await getOrders();
+      setOrders(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function loadFavorites() {
+    const data = JSON.parse(
+      localStorage.getItem("favorites") || "[]"
+    );
+    setFavorites(data);
+  }
+
+  function removeFavorite(id) {
+    const updated = favorites.filter((f) => f.id !== id);
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
   }
 
   return (
-    <div style={styles.container}>
-      {/* LEFT MENU */}
-      <div style={styles.sidebar}>
-        <h3>My Account</h3>
+    <div style={{ padding: 20 }}>
+      <h1>Profile</h1>
 
-        <button onClick={() => setTab("overview")}>
-          Overview
-        </button>
-
+      {/* TABS */}
+      <div style={styles.tabs}>
         <button onClick={() => setTab("orders")}>
           Orders
         </button>
 
-        {user.roles?.includes("designer") && (
-          <button onClick={() => setTab("models")}>
-            My Models
-          </button>
-        )}
+        <button onClick={() => setTab("balance")}>
+          Balance
+        </button>
+
+        <button onClick={() => setTab("favorites")}>
+          Favorites
+        </button>
+
+        <button onClick={() => setTab("upload")}>
+          Upload
+        </button>
       </div>
 
-      {/* CONTENT */}
-      <div style={styles.content}>
-        {tab === "overview" && <Overview user={user} />}
-        {tab === "orders" && <div>Orders coming soon...</div>}
-        {tab === "models" && <div>Designer models coming soon...</div>}
-      </div>
-    </div>
-  );
-}
+      {/* ORDERS */}
+      {tab === "orders" && (
+        <div>
+          {!orders.length && <p>No orders yet</p>}
 
-function Overview({ user }) {
-  return (
-    <div>
-      <h2>Profile</h2>
+          {orders.map((order) => {
+            const status =
+              order.printJobs?.[0]?.status || order.status;
 
-      <p><b>Email:</b> {user.email}</p>
+            return (
+              <div key={order.id} style={styles.card}>
+                <h3>Order #{order.id}</h3>
+                <p>Status: {status}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* UPLOAD */}
+      {tab === "upload" && <ProfileUpload />}
 
-      <p>
-        <b>Roles:</b>{" "}
-        {user.roles?.length
-          ? user.roles.join(", ")
-          : "No roles"}
-      </p>
+      {/* BALANCE */}
+      {tab === "balance" && (
+        <div>
+          <h2>Balance</h2>
+          <p>0 €</p>
+          <button disabled>Top up (coming soon)</button>
+        </div>
+      )}
 
-      <p>
-        <b>Status:</b> {user.isActive ? "Active" : "Inactive"}
-      </p>
+      {/* FAVORITES */}
+      {tab === "favorites" && (
+        <div>
+          {!favorites.length && <p>No favorites</p>}
+
+          {favorites.map((item) => (
+            <div key={item.id} style={styles.card}>
+              <p>{item.name}</p>
+
+              <button onClick={() => removeFavorite(item.id)}>
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 const styles = {
-  container: {
+  tabs: {
     display: "flex",
-    padding: "40px",
-    gap: "30px",
-  },
-  sidebar: {
-    width: "200px",
-    display: "flex",
-    flexDirection: "column",
     gap: "10px",
+    marginBottom: "20px",
   },
-  content: {
-    flex: 1,
+
+  card: {
+    border: "1px solid #ddd",
+    padding: "12px",
+    marginBottom: "10px",
+    borderRadius: "8px",
   },
 };

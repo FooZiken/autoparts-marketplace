@@ -11,9 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // ✅ правильная валидация
   async validateUser(email: string, password: string) {
-    // 🔥 ищем напрямую (сделай метод в users.service если нет)
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -29,7 +27,6 @@ export class AuthService {
     return user;
   }
 
-  // ✅ логин
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
 
@@ -41,22 +38,20 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
-      user, // 🔥 ВАЖНО!
+      user,
     };
   }
 
-  // ✅ регистрация
+  // 🔥 УБРАЛИ roles ИЗ ВХОДА
   async register(data: any) {
-  const { email, password, roles } = data;
+    const { email, password, name } = data;
 
-  // ❌ УБИРАЕМ bcrypt здесь
+    const user = await this.usersService.create({
+      email,
+      password,
+      name,
+    });
 
-  const user = await this.usersService.create({
-    email,
-    password, // передаём сырой пароль
-    roles,
-  });
-
-  return user;
-}
+    return user;
+  }
 }
