@@ -1,3 +1,5 @@
-import { api } from "./client";
+import api from "./client";
 
-export const getPrinters = () => api("/printers");
+export const getPrinters = () => {
+  return api.get("/printers");
+};

@@ -1,5 +1,5 @@
-import { api } from "./client";
+import api from "./client";
 
-export async function getMaterials() {
+export const getMaterials = () => {
   return api.get("/materials");
-}
+};

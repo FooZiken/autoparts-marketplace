@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { uploadModel } from "../../api/models";
+import { createModel } from "../../api/models";
 import { getMaterials } from "../../api/materials";
 
 export default function ProfileUpload() {
@@ -35,7 +35,7 @@ export default function ProfileUpload() {
     formData.append("materialId", materialId);
 
     try {
-      await uploadModel(formData);
+      await createModel(formData);
       alert("Model uploaded!");
     } catch (e) {
       console.error(e);

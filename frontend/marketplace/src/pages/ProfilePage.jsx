@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getOrders } from "../api/orders";
 import ProfileUpload from "../components/profile/ProfileUpload";
-
+import ProfileModels from "../components/profile/ProfileModels";
 export default function ProfilePage() {
   const [tab, setTab] = useState("orders");
   const [orders, setOrders] = useState([]);
@@ -55,6 +55,10 @@ export default function ProfilePage() {
         <button onClick={() => setTab("upload")}>
           Upload
         </button>
+
+        <button onClick={() => setTab("models")}>
+          My Models
+        </button>
       </div>
 
       {/* ORDERS */}
@@ -104,6 +108,9 @@ export default function ProfilePage() {
           ))}
         </div>
       )}
+
+      {/* MyModels */}
+      {tab === "models" && <ProfileModels />}
     </div>
   );
 }

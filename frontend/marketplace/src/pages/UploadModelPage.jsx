@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { uploadModel } from "../api/models";
+import { createModel } from "../../api/models";
 
 export default function UploadModelPage() {
   const [name, setName] = useState("");
@@ -25,7 +25,7 @@ export default function UploadModelPage() {
     formData.append("materialId", materialId);
 
     try {
-      await uploadModel(formData);
+      await createModel(formData);
       alert("Model uploaded!");
     } catch (e) {
       console.error(e);

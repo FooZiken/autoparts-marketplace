@@ -1,11 +1,12 @@
-import { api } from "./client";
-export const register = (data) =>
-  api("/auth/register", {
-    method: "POST",
-    body: JSON.stringify(data),
+import api from "./client";
+
+export const register = (data) => {
+  return api.post("/auth/register", data);
+};
+
+export const login = (email, password) => {
+  return api.post("/auth/login", {
+    email,
+    password,
   });
-export const login = (email, password) =>
-  api("/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ email, password }),
-  });
+};

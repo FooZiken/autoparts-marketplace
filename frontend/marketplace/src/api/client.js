@@ -1,35 +1,32 @@
-const API_URL = "http://localhost:3000";
-
-function getToken() {
-  return localStorage.getItem("token");
-}
+const BASE_URL = "http://localhost:3000";
 
 async function request(url, options = {}) {
-  const token = getToken();
+  const token = localStorage.getItem("token");
 
   const headers = {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
-  const res = await fetch(API_URL + url, {
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(BASE_URL + url, {
     ...options,
     headers,
   });
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || "API error");
+    throw new Error(text || "Request failed");
   }
 
   return res.json();
 }
 
-export const api = {
+const api = {
   get(url) {
-    return request(url, {
-      method: "GET",
-    });
+    return request(url, { method: "GET" });
   },
 
   post(url, body) {
@@ -39,8 +36,10 @@ export const api = {
       method: "POST",
       body: isFormData ? body : JSON.stringify(body),
       headers: isFormData
-        ? {} // ❗ НЕ трогаем headers для FormData
+        ? {}
         : { "Content-Type": "application/json" },
     });
   },
 };
+
+export default api;

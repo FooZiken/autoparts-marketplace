@@ -13,4 +13,17 @@ export const CartProvider = ({ children }) => {
   );
 };
 
-export const useCartContext = () => useContext(CartContext);
+export const useCartContext = () => {
+  const context = useContext(CartContext);
+
+  if (!context) {
+    console.error("useCartContext must be used inside CartProvider");
+    return {
+      addToCart: () => {},
+      removeFromCart: () => {},
+      cart: [],
+    };
+  }
+
+  return context;
+};

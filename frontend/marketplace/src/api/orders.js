@@ -1,9 +1,9 @@
-import { api } from "./client";
+import api from "./client";
 
-export const createOrder = (data) =>
-  api("/orders", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
+export const getOrders = () => {
+  return api.get("/orders");
+};
 
-export const getOrders = () => api("/orders");
+export const createOrder = (data) => {
+  return api.post("/orders", data);
+};
