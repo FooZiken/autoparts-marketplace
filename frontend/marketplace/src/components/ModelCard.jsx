@@ -3,19 +3,45 @@ import { useCartContext } from "../cart/CartContext";
 export default function ModelCard({ model, onOpen }) {
   const { addToCart } = useCartContext();
 
+  const v = model.currentVersion;
+
   return (
     <div style={styles.card} onClick={onOpen}>
       {/* IMAGE */}
       <div style={styles.image}>
-        <span>3D</span>
+        {model.images?.length ? (
+          <img src={model.images[0]} alt={model.name} style={styles.img} />
+        ) : (
+          <span>3D</span>
+        )}
       </div>
 
-      {/* CONTENT */}
       <div style={styles.body}>
         <h3>{model.name}</h3>
+
         <p style={styles.desc}>{model.description}</p>
 
-        <p style={styles.price}>from backend</p>
+        <p style={styles.price}>€{v?.price || "—"}</p>
+
+        <p>Material: {model.material?.name || "—"}</p>
+
+        <p>
+          Car: {model.car?.brand || "—"} /{" "}
+          {model.car?.model || "—"} /{" "}
+          {model.car?.body || "—"}
+        </p>
+
+        <p>
+          {model.isCustomPart
+            ? "Custom part"
+            : `OEM: ${model.oemNumber || "—"}`}
+        </p>
+
+        {model.isTested && (
+          <p style={{ color: "green" }}>
+            ✔ Tested on real car
+          </p>
+        )}
 
         <button
           onClick={(e) => {
@@ -36,17 +62,19 @@ const styles = {
     borderRadius: "8px",
     overflow: "hidden",
     background: "#fff",
-    transition: "0.2s",
     cursor: "pointer",
   },
   image: {
-    height: "150px",
+    height: "180px",
     background: "#f2f2f2",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "30px",
-    fontWeight: "bold",
+  },
+  img: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
   },
   body: {
     padding: "15px",

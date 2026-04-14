@@ -94,9 +94,6 @@ if (executor) {
     for (const job of printJobs) {
       await this.printJobsService.attachToOrder(job.id, savedOrder);
 
-      await this.slicingQueue.add('slice', {
-        printJobId: job.id,
-      });
     }
 
     return {

@@ -13,29 +13,36 @@ import ProfilePage from "./pages/ProfilePage";
 export default function App() {
   const [page, setPage] = useState("home");
   const [selectedModelId, setSelectedModelId] = useState(null);
+  const [filters, setFilters] = useState({});
 
   function handleNavigate(p, data) {
     setPage(p);
 
     if (p === "product") {
-      setSelectedModelId(data); // ← теперь это ID
+      setSelectedModelId(data);
     }
+  }
+
+  function handleSearch(f) {
+    setFilters(f);
+    setPage("home");
   }
 
   function renderPage() {
     switch (page) {
       case "home":
-        return <HomePage onNavigate={handleNavigate} />;
+        return (
+          <HomePage
+            onNavigate={handleNavigate}
+            filters={filters}
+          />
+        );
 
       case "models":
         return <ModelsPage onNavigate={handleNavigate} />;
 
       case "product":
-        return (
-          <ProductPage
-            modelId={selectedModelId}
-          />
-        );
+        return <ProductPage modelId={selectedModelId} />;
 
       case "login":
         return <LoginPage onNavigate={handleNavigate} />;
@@ -59,7 +66,10 @@ export default function App() {
 
   return (
     <div>
-      <Navbar onNavigate={handleNavigate} />
+      <Navbar
+        onNavigate={handleNavigate}
+        onSearch={handleSearch}
+      />
       {renderPage()}
     </div>
   );

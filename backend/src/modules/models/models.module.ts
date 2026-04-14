@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
+import { CarsModule } from '../cars/cars.module';
 import { Model } from './entities/model.entity';
 import { ModelReview } from './entities/model-review.entity';
 import { ModelVersion } from './entities/model-version.entity';
@@ -24,6 +24,7 @@ import { PrintersModule } from '../printers/printers.module'; // 🔥 (если 
     MaterialsModule,
     PricingModule,   // ✅ фикс
     PrintersModule,  // ✅ (если используешь PrintersService)
+    CarsModule,
   ],
   providers: [ModelsService],
   controllers: [ModelsController],

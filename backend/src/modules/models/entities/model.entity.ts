@@ -26,6 +26,28 @@ export class Model {
   @Column({ default: 'draft' })
   status: string;
 
+  @Column({ nullable: true })
+  brandId: string;
+
+  @Column({ nullable: true })
+  carModelId: string;
+
+  @Column({ nullable: true })
+  bodyId: string;
+
+  @Column({ nullable: true })
+  oemNumber: string;
+
+  @Column({ default: false })
+  isCustomPart: boolean;
+
+  @Column({ default: false })
+  isTested: boolean;
+
+// images (массив ключей MinIO)
+  @Column('simple-array', { nullable: true })
+  images: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 

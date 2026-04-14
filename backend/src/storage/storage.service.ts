@@ -59,6 +59,47 @@ export class StorageService {
     };
   }
 
+  async uploadFile(
+  file: Express.Multer.File,
+  bucket: string = this.bucket,
+) {
+  if (!file || !file.buffer) {
+    throw new BadRequestException('File is required');
+  }
+
+  // 🔒 ограничим размер (10MB для картинок)
+  const MAX_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    throw new BadRequestException('Image too large (max 10MB)');
+  }
+
+  // 🔒 базовая проверка типа
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ];
+
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    throw new BadRequestException('Invalid image type');
+  }
+
+  const ext = file.originalname.split('.').pop();
+  const key = `${randomUUID()}.${ext}`;
+
+  await MinioClient.putObject(
+    bucket,
+    key,
+    file.buffer,
+    file.size,
+    {
+      'Content-Type': file.mimetype,
+    },
+  );
+
+  return key;
+}
+
   async generateDownloadUrl(stlKey: string) {
     const expiry = 60 * 5;
 
@@ -68,6 +109,10 @@ export class StorageService {
       expiry,
     );
   }
+
+  async getFileStream(key: string) {
+  return MinioClient.getObject(this.bucket, key);
+}
 
   // 🔥 НОВАЯ ПРОВЕРКА (простая и надёжная)
   private isValidStl(file: Express.Multer.File): boolean {

@@ -18,10 +18,23 @@ export default function ProductPage({ modelId }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getModel(modelId).then(setModel);
-    getMaterials().then(setMaterials);
-    getPrinters().then(setPrinters);
+    load();
   }, [modelId]);
+
+  async function load() {
+    try {
+      const m = await getModel(modelId);
+      setModel(m);
+
+      const mats = await getMaterials();
+      setMaterials(mats);
+
+      const prs = await getPrinters();
+      setPrinters(prs);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   const handleOrder = async () => {
     if (!user) {
@@ -52,50 +65,18 @@ export default function ProductPage({ modelId }) {
     }
   };
 
-  // ⭐ ДОБАВЛЕНО: избранное
-  const addToFavorites = () => {
-    const existing = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    );
-
-    if (existing.find((f) => f.id === model.id)) {
-      alert("Already in favorites");
-      return;
-    }
-
-    const updated = [
-      ...existing,
-      {
-        id: model.id,
-        name: model.name,
-      },
-    ];
-
-    localStorage.setItem("favorites", JSON.stringify(updated));
-
-    alert("Added to favorites");
-  };
-
   if (!model) return <div>Loading...</div>;
 
   return (
     <div style={styles.container}>
-      {/* LEFT: image */}
-      <div style={styles.image}>
-        3D Preview
-      </div>
+      <div style={styles.image}>3D Preview</div>
 
-      {/* RIGHT: info */}
       <div style={styles.info}>
         <h1>{model.name}</h1>
         <p>{model.description}</p>
 
-        {/* ⭐ КНОПКА ИЗБРАННОГО */}
-        <button onClick={addToFavorites}>
-          Add to favorites
-        </button>
+        <button>Add to favorites</button>
 
-        {/* MATERIAL */}
         <div>
           <h4>Material</h4>
           <select
@@ -111,7 +92,6 @@ export default function ProductPage({ modelId }) {
           </select>
         </div>
 
-        {/* PRINTER */}
         <div>
           <h4>Printer</h4>
           <select
@@ -126,11 +106,6 @@ export default function ProductPage({ modelId }) {
             ))}
           </select>
         </div>
-
-        {/* PRICE */}
-        <p style={styles.price}>
-          Price: calculated on backend
-        </p>
 
         <button onClick={handleOrder} disabled={loading}>
           {loading ? "Ordering..." : "Order now"}
@@ -156,10 +131,5 @@ const styles = {
   },
   info: {
     flex: 1,
-  },
-  price: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    margin: "20px 0",
   },
 };

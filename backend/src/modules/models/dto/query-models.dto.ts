@@ -1,7 +1,6 @@
 import { IsOptional, IsString, IsNumberString } from 'class-validator';
 
 export class QueryModelsDto {
-
   @IsOptional()
   @IsNumberString()
   page?: string;
@@ -26,4 +25,20 @@ export class QueryModelsDto {
   @IsString()
   sort?: string;
 
+  // 🔥 ДОБАВИЛИ
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+@IsString()
+brandId?: string;
+
+@IsOptional()
+@IsString()
+carModelId?: string;
+
+@IsOptional()
+@IsString()
+bodyId?: string;
 }

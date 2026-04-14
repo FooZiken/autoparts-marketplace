@@ -1,73 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import ModelCard from "../components/ModelCard";
+import { getModels } from "../api/models";
 
-export default function HomePage({ onSearch, onNavigate }) {
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [vin, setVin] = useState("");
+export default function HomePage({ onNavigate, filters }) {
+  const [models, setModels] = useState([]);
 
-  const [textSearch, setTextSearch] = useState("");
+  useEffect(() => {
+    load();
+  }, [filters]);
+
+  async function load() {
+    try {
+      const data = await getModels(filters);
+      setModels(data);
+    } catch (e) {
+      console.error("Failed to load models", e);
+      setModels([]);
+    }
+  }
 
   return (
     <div style={styles.container}>
-      <h1>Find Auto Parts</h1>
+      
+      {/* GRID */}
+      <h2 style={{ marginTop: "40px" }}>
+        Latest models
+      </h2>
 
-      {/* 🔍 VIN SEARCH */}
-      <div style={styles.block}>
-        <h3>Search by car</h3>
-
-        <input
-          placeholder="Brand"
-          value={brand}
-          onChange={(e) => setBrand(e.target.value)}
-        />
-
-        <input
-          placeholder="Model"
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-        />
-
-        <input
-          placeholder="VIN / Body number"
-          value={vin}
-          onChange={(e) => setVin(e.target.value)}
-        />
-
-        <button
-          onClick={() =>
-            onSearch({ type: "car", brand, model, vin })
-          }
-        >
-          Search
-        </button>
-      </div>
-
-      {/* 🔍 TEXT SEARCH */}
-      <div style={styles.block}>
-        <h3>Search by OEM or keyword</h3>
-
-        <input
-          placeholder="Enter OEM or keyword"
-          value={textSearch}
-          onChange={(e) => setTextSearch(e.target.value)}
-        />
-
-        <button
-          onClick={() =>
-            onSearch({ type: "text", value: textSearch })
-          }
-        >
-          Search
-        </button>
-      </div>
-
-      {/* CTA */}
-      <div style={styles.block}>
-        <h3>Join platform</h3>
-
-        <button onClick={() => onNavigate("register")}>
-          Register
-        </button>
+      <div style={styles.grid}>
+        {!models || models.length === 0 ? (
+          <p>No models found</p>
+        ) : (
+          models.map((m) => (
+            <ModelCard
+              key={m.id}
+              model={m}
+              onOpen={() => onNavigate("product", m.id)}
+            />
+          ))
+        )}
       </div>
     </div>
   );
@@ -75,10 +46,36 @@ export default function HomePage({ onSearch, onNavigate }) {
 
 const styles = {
   container: {
-    padding: "40px",
-    textAlign: "center",
+    padding: "20px 30px",
   },
-  block: {
-    margin: "30px 0",
+
+  hero: {
+    display: "grid",
+    gridTemplateColumns: "2fr 1fr",
+    gap: "10px",
+  },
+
+  heroMain: {
+    background: "#eee",
+    padding: "40px",
+    minHeight: "250px",
+    textAlign: "left",
+  },
+
+  side: {
+    display: "grid",
+    gap: "10px",
+  },
+
+  box: {
+    background: "#f5f5f5",
+    padding: "20px",
+  },
+
+  grid: {
+    marginTop: "20px",
+    display: "grid",
+    gridTemplateColumns: "repeat(4, 1fr)",
+    gap: "15px",
   },
 };

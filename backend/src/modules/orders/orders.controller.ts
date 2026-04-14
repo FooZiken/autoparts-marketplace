@@ -20,8 +20,8 @@ export class OrdersController {
   @Post()
   @UseGuards(AuthGuard('jwt'))
   create(@Body() dto: any, @Request() req: any) {
-    return this.ordersService.create(dto, req.user.id);
-  }
+  return this.ordersService.create(dto, req.user.userId);
+}
 
   @Get()
   findAll() {

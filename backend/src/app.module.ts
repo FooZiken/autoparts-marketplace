@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bullmq';
-
+import { CarsModule } from './modules/cars/cars.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { Order } from './modules/orders/entities/order.entity';
-
+import { Brand } from './modules/cars/entities/brand.entity';
+import { CarModel } from './modules/cars/entities/car-model.entity';
+import { Body } from './modules/cars/entities/body.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -48,6 +50,9 @@ import { SlicingModule } from './modules/slicing/slicing.module';
         Order,
         PrintJob,
         Executor,
+        Brand,
+        CarModel,
+        Body,
       ],
       synchronize: true,
     }),
@@ -71,7 +76,8 @@ import { SlicingModule } from './modules/slicing/slicing.module';
     OrdersModule,
     PrintJobsModule,
     SlicingModule,
-    ExecutorsModule, // 👈 новый
+    ExecutorsModule,
+    CarsModule, // 👈 новый
   ],
   controllers: [AppController],
   providers: [AppService],
