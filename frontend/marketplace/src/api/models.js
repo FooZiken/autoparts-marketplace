@@ -10,14 +10,18 @@ export async function getModels(filters = {}) {
       bodyId: filters.body || undefined,
     },
   });
-
+  console.log("GET MODELS RESPONSE:", res);
   return res.data?.data || [];
 }
 
 // ================= ONE =================
 export async function getModel(id) {
   const res = await client.get(`/models/${id}`);
-  return res.data;
+
+  console.log("FULL RESPONSE:", res);
+  console.log("DATA:", res.data);
+
+  return res;
 }
 
 // ================= CREATE =================

@@ -26,10 +26,9 @@ export default function ModelsPage({ onNavigate }) {
       <div style={styles.grid}>
         {models.map((m) => (
           <ModelCard
-            key={m.id}
-            model={m}
-            onOpen={() => onNavigate("product", m.id)}
-          />
+  key={m.id}
+  model={m}
+/>
         ))}
       </div>
     </div>

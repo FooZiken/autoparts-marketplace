@@ -1,12 +1,16 @@
 import { useCartContext } from "../cart/CartContext";
-
-export default function ModelCard({ model, onOpen }) {
+import { useNavigate } from "react-router-dom";
+export default function ModelCard({ model }) {
   const { addToCart } = useCartContext();
+  const navigate = useNavigate();
 
   const v = model.currentVersion;
 
   return (
-    <div style={styles.card} onClick={onOpen}>
+    <div
+  style={styles.card}
+  onClick={() => navigate(`/models/${model.id}`)}
+>
       {/* IMAGE */}
       <div style={styles.image}>
         {model.images?.length ? (

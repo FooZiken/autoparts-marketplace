@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getOrders } from "../api/orders";
 import ProfileUpload from "../components/profile/ProfileUpload";
 import ProfileModels from "../components/profile/ProfileModels";
-export default function ProfilePage() {
+export default function ProfilePage({ onNavigate }) {
   const [tab, setTab] = useState("orders");
   const [orders, setOrders] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -110,7 +110,9 @@ export default function ProfilePage() {
       )}
 
       {/* MyModels */}
-      {tab === "models" && <ProfileModels />}
+      {tab === "models" && (
+  <ProfileModels onNavigate={onNavigate} />
+)}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useAuth } from "../auth/AuthContext";
 import { useState, useEffect } from "react";
 import { getFilterOptions } from "../api/models";
+import { Link } from "react-router-dom";
 
-export default function Navbar({ onNavigate, onSearch }) {
+export default function Navbar({ onSearch }) {
   const { user, logout } = useAuth();
 
   const [filters, setFilters] = useState({
@@ -40,7 +41,6 @@ export default function Navbar({ onNavigate, onSearch }) {
   function handleChange(e) {
     const { name, value } = e.target;
 
-    // 🔥 сброс зависимых фильтров
     if (name === "brand") {
       setFilters({
         ...filters,
@@ -70,54 +70,39 @@ export default function Navbar({ onNavigate, onSearch }) {
     onSearch(filters);
   }
 
-  // 🔥 ФИЛЬТРАЦИЯ
   const filteredModels = filters.brand
-    ? options.models.filter(
-        (m) => m.brandId === filters.brand
-      )
+    ? options.models.filter((m) => m.brandId === filters.brand)
     : options.models;
 
   const filteredBodies = filters.model
-    ? options.bodies.filter(
-        (b) => b.carModelId === filters.model
-      )
+    ? options.bodies.filter((b) => b.carModelId === filters.model)
     : options.bodies;
 
   return (
     <div>
       {/* TOP */}
       <div style={styles.top}>
-        <div style={styles.logo} onClick={() => onNavigate("home")}>
+        <Link to="/" style={styles.logo}>
           <span style={{ color: "#f4b400" }}>My</span> Logo
-        </div>
+        </Link>
 
         <div style={styles.right}>
-          <button onClick={() => onNavigate("about")}>
-            О проекте
-          </button>
+          <Link to="/about"><button>О проекте</button></Link>
 
           {!user ? (
             <>
-              <button onClick={() => onNavigate("login")}>
-                Login
-              </button>
-              <button onClick={() => onNavigate("register")}>
-                Register
-              </button>
+              <Link to="/login"><button>Login</button></Link>
+              <Link to="/register"><button>Register</button></Link>
             </>
           ) : (
             <>
-              <button onClick={() => onNavigate("profile")}>
-                {user.email}
-              </button>
+              <Link to="/profile">
+                <button>{user.email}</button>
+              </Link>
 
-              <button onClick={() => onNavigate("cart")}>
-                Cart
-              </button>
+              <Link to="/cart"><button>Cart</button></Link>
 
-              <button onClick={logout}>
-                Logout
-              </button>
+              <button onClick={logout}>Logout</button>
             </>
           )}
         </div>
@@ -125,37 +110,33 @@ export default function Navbar({ onNavigate, onSearch }) {
 
       {/* SEARCH */}
       <div style={styles.search}>
-        {/* BRAND */}
         <select name="brand" value={filters.brand} onChange={handleChange}>
           <option value="">Brand</option>
-          {(options.brands || []).map((b) => (
+          {options.brands.map((b) => (
             <option key={b.id} value={b.id}>
               {b.name}
             </option>
           ))}
         </select>
 
-        {/* MODEL */}
         <select name="model" value={filters.model} onChange={handleChange}>
           <option value="">Model</option>
-          {(filteredModels || []).map((m) => (
+          {filteredModels.map((m) => (
             <option key={m.id} value={m.id}>
               {m.name}
             </option>
           ))}
         </select>
 
-        {/* BODY */}
         <select name="body" value={filters.body} onChange={handleChange}>
           <option value="">Body</option>
-          {(filteredBodies || []).map((b) => (
+          {filteredBodies.map((b) => (
             <option key={b.id} value={b.id}>
               {b.name}
             </option>
           ))}
         </select>
 
-        {/* CATEGORY */}
         <select
           name="category"
           value={filters.category}
@@ -164,7 +145,6 @@ export default function Navbar({ onNavigate, onSearch }) {
           <option value="">Category</option>
         </select>
 
-        {/* SEARCH */}
         <input
           name="query"
           value={filters.query}
@@ -192,6 +172,7 @@ const styles = {
     fontSize: "26px",
     fontWeight: "bold",
     cursor: "pointer",
+    textDecoration: "none",
   },
 
   right: {

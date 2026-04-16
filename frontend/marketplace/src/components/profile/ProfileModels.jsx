@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { getMyModels } from "../../api/models";
 import ModelCard from "../ModelCard";
 
-export default function ProfileModels() {
+export default function ProfileModels({ onNavigate }) {
   const [models, setModels] = useState([]);
   const [filters, setFilters] = useState({
     search: "",
@@ -78,7 +78,13 @@ export default function ProfileModels() {
         {models.map((m) => {
           console.log("RENDER ITEM:", m);
 
-          return <ModelCard key={m.id} model={m} />;
+          return (
+  <ModelCard
+    key={m.id}
+    model={m}
+    onOpen={(id) => onNavigate("product", id)}
+  />
+);
         })}
       </div>
     </div>

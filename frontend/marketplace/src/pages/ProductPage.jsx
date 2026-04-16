@@ -4,8 +4,9 @@ import { getMaterials } from "../api/materials";
 import { getPrinters } from "../api/printers";
 import { createOrder } from "../api/orders";
 import { useAuth } from "../auth/AuthContext";
-
-export default function ProductPage({ modelId }) {
+import { useParams } from "react-router-dom";
+export default function ProductPage() {
+  const { id } = useParams();
   const { user } = useAuth();
 
   const [model, setModel] = useState(null);
@@ -18,23 +19,32 @@ export default function ProductPage({ modelId }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+  if (id) {
     load();
-  }, [modelId]);
+  }
+}, [id]);
 
   async function load() {
-    try {
-      const m = await getModel(modelId);
-      setModel(m);
+  try {
+    console.log("LOADING MODEL ID:", id);
+    
+    const m = await getModel(id);
+    console.log("TYPE OF M:", typeof m);
+    console.log("M VALUE:", m);
+    console.log("MODEL RESPONSE:", m);
+    console.log("FINAL M:", m);
+    
+    setModel(m);
 
-      const mats = await getMaterials();
-      setMaterials(mats);
+    const mats = await getMaterials();
+    setMaterials(mats);
 
-      const prs = await getPrinters();
-      setPrinters(prs);
-    } catch (e) {
-      console.error(e);
-    }
+    const prs = await getPrinters();
+    setPrinters(prs);
+  } catch (e) {
+    console.error(e);
   }
+}
 
   const handleOrder = async () => {
     if (!user) {
@@ -51,7 +61,7 @@ export default function ProductPage({ modelId }) {
       setLoading(true);
 
       await createOrder({
-        modelId,
+        id,
         materialId,
         printerId,
       });
@@ -66,14 +76,48 @@ export default function ProductPage({ modelId }) {
   };
 
   if (!model) return <div>Loading...</div>;
-
+  const isApproved = model.status === "approved";
+  const canBuy = isApproved;
   return (
     <div style={styles.container}>
-      <div style={styles.image}>3D Preview</div>
+      <div style={styles.image}>
+  {model.images?.length ? (
+    <img
+      src={model.images[0]}
+      alt={model.name}
+      style={styles.img}
+    />
+  ) : (
+    <span>3D Preview</span>
+  )}
+</div>
 
       <div style={styles.info}>
         <h1>{model.name}</h1>
         <p>{model.description}</p>
+        <p>Material: {model.material?.name || "—"}</p>
+
+<p>
+  Car: {model.car?.brand || "—"} /{" "}
+  {model.car?.model || "—"} /{" "}
+  {model.car?.body || "—"}
+</p>
+
+<p>
+  {model.isCustomPart
+    ? "Custom part"
+    : `OEM: ${model.oemNumber || "—"}`}
+</p>
+
+{model.isTested ? (
+  <p style={{ color: "green" }}>
+    ✔ Tested on real car
+  </p>
+) : (
+  <p style={{ color: "gray" }}>
+    Not tested
+  </p>
+)}
 
         <button>Add to favorites</button>
 
@@ -132,4 +176,9 @@ const styles = {
   info: {
     flex: 1,
   },
+  img: {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+},
 };
